@@ -1,0 +1,1 @@
+# This Repo explores the possibilities of RAG in context of retrieving factual data

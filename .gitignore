@@ -1,0 +1,57 @@
+# --- Project-specific ignores ---
+
+# Do not commit environment files
+.env
+*.env
+
+# Do not commit PDF files
+*.pdf
+
+# Do not commit JSONL files
+*.jsonl
+
+# Ignore ChromaDB local storage
+chroma/
+chroma_db/
+chroma_db/*/
+chromadb/
+chromadb/
+chroma_index/
+*.chroma
+*.chroma.db
+
+# If you use Chroma inside a "data" folder
+data/chroma/
+data/chroma_db/
+data/chromadb/
+
+# --- Python standard ignores ---
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# VSCode settings
+.vscode/
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

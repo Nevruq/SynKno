@@ -55,3 +55,12 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Ignore all txt files
+*.txt
+
+# But DO NOT ignore this one:
+!notes.txt
+
+*.pth
+*.png

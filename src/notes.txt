@@ -1,0 +1,45 @@
+Ideas what can I do for my Bachelor Thesis?
+
+    - Fine-tuning RAG for Scientific Papers
+    - Wie kann man Scientific fragen von regulären differenzieren? 
+    - Indexing und Embedding verbessern ?
+    - Attentionmask auf Fragen packen um besserere Gewichtungen von Informationen zu erschaffen
+        Embedding anpassen entsprechend der 
+        1. Zielbild: „Query Distillation Layer“ vor deiner Vektor-DB
+        2. Statt die rohe User-Frage zu embedden, fügst du eine Schicht davor ein:
+        3. User Prompt → Query-Destillat (Quintessenz)
+        4. Optional: Teil-Queries + Gewichte
+
+        Wie kann ich messen ob ein Qualitätsverbesserung statfinded ?
+
+Diese Destillate werden eingebettet und in der Vektor-DB gesucht.
+
+
+Ablauf meines RAG-Systems:
+    
+    Prompt von User -> Prompt wird in Kernthemen zerlegt -> Hole top-k aus Vektordatenbank -> Generiere neue Prompt für LLM mit RAG Infos
+    
+    Lasse LLM prüfen, welche Antwort Destilling/Kein Destilling besser eine Antwort liefern kann
+
+    Anzahl LLM aufrufe pro Vergleich: 
+        +1: Destilling(Chunking) der Frage
+        +1: Antwort LLM mit Chunking
+        +1: Antwort LLM ohne Chunking (ganze Prompt)
+        +1: Vergleich welche Antwort besser ist
+
+    Ingesamt 4 LLM aufrufe
+
+Instead, it emphasizes techniques such as prompt engineering, advanced data retrieval mechanisms, 
+and innovative query formulation. Possible methodologies include the use of embedding spaces, graph databases, 
+or hybrid architectures to improve retrieval accuracy and synthesis capabilities.
+
+
+Quellen: 
+- RAG-Optimierung: https://www.datacamp.com/de/tutorial/how-to-improve-rag-performance-5-key-techniques-with-examples
+
+
+
+TODO:
+
+
+    Passe Tokenlänge in RAG an 

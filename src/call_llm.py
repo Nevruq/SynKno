@@ -113,5 +113,36 @@ def call_llm_regular(user_prompt, model):
 
     return result
 
+def gen_QA_nasdaq(model, context):
+    class qaFormatNasdaq(BaseModel):
+        question: str
+        answer: str
+
+    llm_prompt = """
+    You are an AI assistant that generates synthetic training data for a Retrieval-Augmented Generation (RAG) system.
+
+    Your task:
+    Using ONLY the information from the context below, create:
+
+    1. A clear and slightly elaborate question in English that can be answered exclusively from the given context.
+    2. A concise and factually correct answer in English, strictly based on the context.
+    3. Do not mention that you created the question using the context.
+
+    Rules:
+    - Do NOT add information that is not present in the context.
+    - Do NOT invent details, numbers, or events.
+    - The question must require understanding of the context, not general world knowledge.
+    - The answer must be directly supported by the context.
+    - Output MUST follow this exact format:
+
+    Give me the output in the JSON format
+    {"question": txt, "answer":txt}
+    CONTEXT:
+    """
+    formated_prompt = llm_prompt + "\n " + context
+    response = model.responses.create(model=MODEL_NAME_2, input=formated_prompt)
+    #test
+    return response
+
 if __name__ == "__main__":
     pass

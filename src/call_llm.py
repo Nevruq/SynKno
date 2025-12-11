@@ -71,26 +71,16 @@ def call_llm_compare_answers(prompt, ideal_answer, answer_destilled, answer_regu
 
 def call_llm_answer_RAG(query_results, user_prompt, model):
     
-
-    llm_prompt = f"""
+    instructions = f"""
     You are an assistant system that answers questions only based on the provided document excerpts.
     Rules:
     Use only the given context.
     Do not invent facts.
-    CONTEXT:
-    [chunk_01]
-    {query_results[0]}
-    [chunk_02]
-    {query_results[1]}
-    [chunk_03]
-    {query_results[2]}
-    QUESTION:
-    {user_prompt}
-    TASK:
-    Answer the question strictly based on the context.  
+    Answer the question strictly based on the context. 
     """
+    
 
-    result = model.responses.create(model=MODEL_NAME, input=llm_prompt)
+    result = model.responses.create(model=MODEL_NAME, instructions=instructions, input=user_prompt)
 
     return result
 

@@ -11,6 +11,7 @@ import chromadb
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
+import rag_data
 
 
 
@@ -24,54 +25,42 @@ if __name__ == "__main__":
    
    # Open output file
    output_file = open("output_data_LLM.txt", "w", encoding="utf-8")
-   # write header
-   output_file.write("Question, Ideal_answer, reponse_1, response_2, comparisson")
+   # write header: Question, Ideal_answer, reponse_1{metadaten}, response_2{metadaten}, comparission{metadaten}
+
    client = chromadb.PersistentClient("src/chroma")
    collection = client.get_or_create_collection("nasdaq_news_chunked")
 
-   QA_nasdaq = pd.read_csv("QA_nasdaq")
+   QA_nasdaq = pd.read_csv("src/QA_nasdaq.csv", sep=",")
 
    for row in QA_nasdaq.itertuples(index=False):
-      response_1 = dict()
-      response_2 = dict()
-      # 2. Frage wird gestillt und gechunked
-      response_categories = call_llm.call_llm_categories(row.question, LLM_client).output_text
-      response_categories_json = json.loads(response_categories)
+      question = row.question
+      ideal_answer = row.answer
+      
+      # Method 1: topics_formatted, query_summary_results, answer_llm_chunked_rag
+      response_categories = call_llm.call_llm_categories(row.question, LLM_client)
+      response_categories_json = json.loads(response_categories.output_text)
 
-
-      #destilled_response = call_llm.call_llm_categories(prompt, model)
-      #formated_destilled_response = wp.distill_query(user_prompt=prompt, raw_answer=destilled_response)
-      #3 connect to client
-      client = chromadb.PersistentClient("src/chroma")
-      collection = client.get_or_create_collection("nasdaq_news_chunked")
-
-      # 3a. Query Datenbank mit Chunking. JSON -> List
-      #formated_subqueries = [query for query in formated_destilled_response.items()]
-      #query_destilled_rag_return = collection.query(query_texts="formated text", n_results=3)
       topics_formatted = [response_categories_json["subQuerie1"], response_categories_json["subQuerie2"], response_categories_json["subQuerie3"]]
-      query_summary_results = collection.query(query_texts=topics_formatted, n_results=3)["documents"][0]
-      
-      # 3b. Query Datenbank ohne Chunking
-      query_regular_rag = collection.query(query_texts=prompt, n_results=3)
+      query_summary_results = collection.query(query_texts=topics_formatted, n_results=3)
+      query_summary_results_formatted = query_summary_results["documents"][0]
+
+      answer_llm_Chunked_Rag = call_llm.call_llm_answer_RAG(query_results=query_summary_results, user_prompt=question, model=LLM_client)
+
+      # Method 2: Question, query_regular_rag,  answer_llm_wRag
+      query_regular_rag = collection.query(query_texts=question, n_results=3)
       context_query = query_regular_rag["documents"][0]
-      asnwer_llm_wRAG = call_llm.call_llm_answer_RAG(query_results=context_query, user_prompt=prompt, model=LLM_client)
-      # Normales Rag mit suche nach ganzer Prompt
+      asnwer_llm_wRAG = call_llm.call_llm_answer_RAG(query_results=context_query, user_prompt=question, model=LLM_client)
 
-      # Destillierte Themen
-
-      answer_llm_Chunked_Rag = call_llm.call_llm_answer_RAG(query_results=query_summary_results, user_prompt=prompt, model=LLM_client)
-      print(context_query)
-      print(query_summary_results)
-      # 4. Vergleiche beide Antworten mit musterantwort einer LLM
-      # = call_llm.call_llm_regular(user_prompt=prompt, model=LLM_client)
-      
-      output_file.write(f"Answe wRag: \n {asnwer_llm_wRAG} \n Answer withoutRag: \n {answer_llm_Chunked_Rag}", )
-      response_compare = call_llm.call_llm_compare_answers(prompt=prompt,
+      # Comparisson
+      response_compare = call_llm.call_llm_compare_answers(prompt=question,
                                                          ideal_answer=ideal_answer,
-                                                         answer_destilled=asnwer_llm_wRAG.output_text, 
-                                                         answer_regular=answer_llm_Chunked_Rag.output_text,
+                                                         answer_destilled=answer_llm_Chunked_Rag.output_text, 
+                                                         answer_regular=asnwer_llm_wRAG.output_text,
                                                          model=LLM_client)
-      output_file.write("\n Comparrison of both Answers: \n" + response_compare.output_text)
-      #print(call_llm.call_llm_compare_answers())
-
+      # create json with data class
+      data_Json = rag_data(question=question, ideal_answer=ideal_answer, 
+                           query_input_1=topics_formatted, query_output_1=query_summary_results, LLM_answer_method_1=answer_llm_Chunked_Rag,
+                           query_input_2=question, query_output_2=query_regular_rag, LLM_answer_method_2=asnwer_llm_wRAG,
+                           comparisson=response_compare)
+      print(data_Json)
 output_file.close
